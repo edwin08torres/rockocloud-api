@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RockoCloud.DataAccess.Interfaces\RockoCloud.DataAccess.Interfaces.csproj" />
+    <ProjectReference Include="..\RockoCloud.DataAccess\RockoCloud.DataAccess.csproj" />
+    <ProjectReference Include="..\RockoCloud.Models\RockoCloud.Models.csproj" />
+  </ItemGroup>
+
+</Project>

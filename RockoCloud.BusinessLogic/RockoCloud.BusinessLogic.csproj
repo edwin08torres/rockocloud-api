@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+    <PackageReference Include="YoutubeExplode" Version="6.5.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RockoCloud.BusinessLogic.Interfaces\RockoCloud.BusinessLogic.Interfaces.csproj" />
+    <ProjectReference Include="..\RockoCloud.DataAccess.Interfaces\RockoCloud.DataAccess.Interfaces.csproj" />
+    <ProjectReference Include="..\RockoCloud.Models\RockoCloud.Models.csproj" />
+  </ItemGroup>
+
+</Project>

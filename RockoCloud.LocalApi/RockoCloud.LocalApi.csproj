@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RockoCloud.BusinessLogic.Interfaces\RockoCloud.BusinessLogic.Interfaces.csproj" />
+    <ProjectReference Include="..\RockoCloud.BusinessLogic\RockoCloud.BusinessLogic.csproj" />
+    <ProjectReference Include="..\RockoCloud.DataAccess.Interfaces\RockoCloud.DataAccess.Interfaces.csproj" />
+    <ProjectReference Include="..\RockoCloud.DataAccess\RockoCloud.DataAccess.csproj" />
+    <ProjectReference Include="..\RockoCloud.Models\RockoCloud.Models.csproj" />
+  </ItemGroup>
+
+</Project>
