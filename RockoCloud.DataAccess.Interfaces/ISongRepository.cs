@@ -7,4 +7,6 @@ public interface ISongRepository
     Task<IEnumerable<Song>> GetAllAsync();
     Task<int> UpsertAsync(Song song);
     Task<int> ClearAllAsync();
+    Task<Song?> GetByIdAsync(string id);
+    Task<bool> DeleteAsync(string id);
 }

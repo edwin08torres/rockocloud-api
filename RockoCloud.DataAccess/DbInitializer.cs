@@ -15,6 +15,7 @@ public static class DbInitializer
                 Title TEXT,
                 Artist TEXT,
                 Album TEXT,
+                CoverPath TEXT,
                 DurationSeconds INTEGER,
                 LocalPath TEXT UNIQUE,
                 Genre TEXT,

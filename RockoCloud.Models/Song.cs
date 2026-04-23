@@ -10,5 +10,7 @@ public class Song
     public string LocalPath { get; set; } = string.Empty;
     public string Genre { get; set; } = string.Empty;
     public string FileName { get; set; } = string.Empty;
+    public string? CoverPath { get; set; }
+
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 }

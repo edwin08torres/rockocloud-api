@@ -38,4 +38,16 @@ public class SongRepository : ISongRepository
         using var db = _connectionFactory.CreateConnection();
         return await db.ExecuteAsync("DELETE FROM Songs");
     }
+    public async Task<Song?> GetByIdAsync(string id)
+    {
+        using var db = _connectionFactory.CreateConnection();
+        return await db.QueryFirstOrDefaultAsync<Song>("SELECT * FROM Songs WHERE Id = @Id", new { Id = id });
+    }
+
+    public async Task<bool> DeleteAsync(string id)
+    {
+        using var db = _connectionFactory.CreateConnection();
+        var rows = await db.ExecuteAsync("DELETE FROM Songs WHERE Id = @Id", new { Id = id });
+        return rows > 0;
+    }
 }
