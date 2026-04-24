@@ -1,8 +1,12 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 using RockoCloud.BusinessLogic;
 using RockoCloud.BusinessLogic.Interfaces;
 using RockoCloud.DataAccess;
 using RockoCloud.DataAccess.Interfaces;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +15,31 @@ Directory.CreateDirectory(dbPath);
 var connectionString = $"Data Source={Path.Combine(dbPath, "rockola.db")}";
 
 builder.Services.AddSingleton<IDbConnectionFactory>(new DbConnectionFactory(connectionString));
+
+var adminDbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Server=(localdb)\\mssqllocaldb;Database=RockoCloud_AdminDB;Trusted_Connection=True;MultipleActiveResultSets=true";
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(adminDbConnectionString));
+
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "TU_LLAVE_SUPER_SECRETA_DE_DETDEVS_2024_MINIMO_32_CARACTERES!!";
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "rockocloud.api",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "rockocloud.client",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<ISongRepository, SongRepository>();
 builder.Services.AddScoped<IMusicScannerService, MusicScannerService>();
 builder.Services.AddScoped<IFileManagerService, FileManagerService>();
@@ -44,6 +73,10 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseCors("AllowTauri");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
