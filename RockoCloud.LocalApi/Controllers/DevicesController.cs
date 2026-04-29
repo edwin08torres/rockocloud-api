@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using RockoCloud.DataAccess;
 using RockoCloud.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace RockoCloud.Api.Controllers;
 
@@ -13,10 +16,12 @@ namespace RockoCloud.Api.Controllers;
 public class DevicesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public DevicesController(ApplicationDbContext context)
+    public DevicesController(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     [HttpGet]
@@ -91,7 +96,9 @@ public class DevicesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> PairDevice([FromBody] PairRequest request)
     {
-        var device = await _context.Devices.FirstOrDefaultAsync(d => d.PairingPin == request.Pin);
+        var device = await _context.Devices
+            .Include(d => d.Branch)
+            .FirstOrDefaultAsync(d => d.PairingPin == request.Pin);
 
         if (device == null) return NotFound("PIN inválido o expirado.");
 
@@ -101,11 +108,33 @@ public class DevicesController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim("DeviceId", device.Id.ToString()),
+                new Claim("TenantId", device.Branch.TenantId.ToString()),
+                new Claim(ClaimTypes.Role, "RockolaDevice")
+            }),
+            Expires = DateTime.UtcNow.AddYears(10),
+            Issuer = _configuration["Jwt:Issuer"], 
+            Audience = _configuration["Jwt:Audience"],
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var jwtString = tokenHandler.WriteToken(token);
+
         return Ok(new
         {
-            DeviceKey = device.DeviceKey,
-            Message = "¡Vinculación exitosa!",
-            SystemName = device.Name
+            token = jwtString,
+            deviceKey = device.DeviceKey,
+            message = "¡Vinculación exitosa!",
+            systemName = device.Name
         });
     }
 }

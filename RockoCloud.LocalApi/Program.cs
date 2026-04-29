@@ -23,7 +23,9 @@ var adminDbConnectionString = builder.Configuration.GetConnectionString("Default
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(adminDbConnectionString));
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "TU_LLAVE_SUPER_SECRETA_DE_DETDEVS_2024_MINIMO_32_CARACTERES!!";
+// LA LLAVE AHORA SE LEE DIRECTO DEL APPSETTINGS
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -33,8 +35,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "rockocloud.api",
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "rockocloud.client",
+            ValidIssuer = builder.Configuration["Jwt:Issuer"], // SE LEE DEL APPSETTINGS
+            ValidAudience = builder.Configuration["Jwt:Audience"], // SE LEE DEL APPSETTINGS
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
@@ -85,12 +87,6 @@ builder.Services.AddCors(options => {
 });
 
 var app = builder.Build();
-
-//var dbFilePath = Path.Combine(dbPath, "rockola.db");
-//if (File.Exists(dbFilePath))
-//{
-//    File.Delete(dbFilePath);
-//}
 
 var factory = app.Services.GetRequiredService<IDbConnectionFactory>();
 DbInitializer.Initialize(factory);
