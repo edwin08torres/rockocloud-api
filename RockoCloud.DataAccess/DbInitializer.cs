@@ -12,6 +12,7 @@ public static class DbInitializer
         db.Execute(@"
             CREATE TABLE IF NOT EXISTS Songs (
                 Id TEXT PRIMARY KEY,
+                TenantId TEXT,
                 Title TEXT,
                 Artist TEXT,
                 Album TEXT,

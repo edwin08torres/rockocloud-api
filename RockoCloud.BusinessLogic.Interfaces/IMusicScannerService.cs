@@ -2,5 +2,5 @@
 
 public interface IMusicScannerService
 {
-    Task ScanFolderAsync(string path);
+    Task ScanFolderAsync(string path, string tenantId);
 }

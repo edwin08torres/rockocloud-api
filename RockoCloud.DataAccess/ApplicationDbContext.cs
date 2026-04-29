@@ -25,7 +25,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<User>()
             .HasOne(u => u.Tenant)
-            .WithMany()
+            .WithMany(t => t.Users)
             .HasForeignKey(u => u.TenantId);
     }
 }

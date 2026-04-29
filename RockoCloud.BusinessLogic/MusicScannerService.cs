@@ -15,7 +15,7 @@ public class MusicScannerService : IMusicScannerService
         _songRepository = songRepository;
     }
 
-    public async Task ScanFolderAsync(string path)
+    public async Task ScanFolderAsync(string path, string tenantId)
     {
         if (!Directory.Exists(path)) return;
 
@@ -33,7 +33,6 @@ public class MusicScannerService : IMusicScannerService
                 {
                     var pic = tfile.Tag.Pictures[0];
                     coverLocalPath = Path.Combine(Path.GetDirectoryName(file)!, "cover.jpg");
-                    // Solo la guardamos si no existe ya
                     if (!File.Exists(coverLocalPath))
                     {
                         File.WriteAllBytes(coverLocalPath, pic.Data.Data);
@@ -42,6 +41,7 @@ public class MusicScannerService : IMusicScannerService
 
                 var song = new Song
                 {
+                    TenantId = tenantId,
                     Title = tfile.Tag.Title ?? Path.GetFileNameWithoutExtension(file),
                     Artist = tfile.Tag.FirstPerformer ?? "Artista Desconocido",
                     Album = tfile.Tag.Album ?? "Album Desconocido",

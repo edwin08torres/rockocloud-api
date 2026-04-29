@@ -3,6 +3,7 @@
 public class Song
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string TenantId { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Artist { get; set; } = string.Empty;
     public string Album { get; set; } = string.Empty;
@@ -11,6 +12,5 @@ public class Song
     public string Genre { get; set; } = string.Empty;
     public string FileName { get; set; } = string.Empty;
     public string? CoverPath { get; set; }
-
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 }

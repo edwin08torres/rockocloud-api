@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using RockoCloud.BusinessLogic;
 using RockoCloud.BusinessLogic.Interfaces;
 using RockoCloud.DataAccess;
@@ -47,7 +48,35 @@ builder.Services.AddScoped<IDownloadService, DownloadService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "RockoCloud API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Ingresa el token JWT así: Bearer {tu_token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowTauri", policy => {
@@ -56,6 +85,12 @@ builder.Services.AddCors(options => {
 });
 
 var app = builder.Build();
+
+//var dbFilePath = Path.Combine(dbPath, "rockola.db");
+//if (File.Exists(dbFilePath))
+//{
+//    File.Delete(dbFilePath);
+//}
 
 var factory = app.Services.GetRequiredService<IDbConnectionFactory>();
 DbInitializer.Initialize(factory);

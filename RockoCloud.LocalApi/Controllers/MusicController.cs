@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RockoCloud.BusinessLogic.Interfaces;
 using RockoCloud.DataAccess.Interfaces;
 using RockoCloud.Models;
@@ -7,13 +8,14 @@ namespace RockoCloud.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class MusicController : ControllerBase
 {
     private readonly ISongRepository _songRepository;
     private readonly IMusicScannerService _scannerService;
     private readonly IFileManagerService _fileManager;
     private readonly IDownloadService _downloadService;
-    private readonly string _rootMusicFolder = "C:\\RockoCloud_Music"; // Idealmente esto viene de SystemSettings o appsettings.json
+    private readonly string _rootMusicFolder = "C:\\RockoCloud_Music";
 
     public MusicController(
         ISongRepository songRepository,
@@ -29,29 +31,31 @@ public class MusicController : ControllerBase
         if (!Directory.Exists(_rootMusicFolder)) Directory.CreateDirectory(_rootMusicFolder);
     }
 
+    private string GetTenantId() => User.FindFirst("TenantId")?.Value ?? "";
+
     [HttpGet("library")]
     public async Task<IActionResult> GetLibrary()
     {
+        var tenantId = GetTenantId();
         var songs = await _songRepository.GetAllAsync();
-        return Ok(songs);
+        return Ok(songs.Where(s => s.TenantId == tenantId));
     }
 
     [HttpPost("upload")]
     public async Task<IActionResult> UploadMusic([FromForm] UploadMusicRequest request)
     {
+        var tenantId = GetTenantId();
+
         if (request.File == null || request.File.Length == 0)
             return BadRequest("No se envió ningún archivo.");
 
-        // 1. Calcular ruta segura (Si no manda artista, se va a General/Varios)
         string safePath = _fileManager.GetSafePath(_rootMusicFolder, request.Artist, request.Album, request.File.FileName);
 
-        // 2. Guardar el archivo físico
         using (var stream = new FileStream(safePath, FileMode.Create))
         {
             await request.File.CopyToAsync(stream);
         }
 
-        // 3. Escribir metadatos reales en el archivo usando TagLib
         using (var tfile = TagLib.File.Create(safePath))
         {
             tfile.Tag.Performers = new[] { request.Artist ?? "General" };
@@ -60,8 +64,7 @@ public class MusicController : ControllerBase
             tfile.Save();
         }
 
-        // 4. Escanear e insertar en DB
-        await _scannerService.ScanFolderAsync(Path.GetDirectoryName(safePath)!);
+        await _scannerService.ScanFolderAsync(Path.GetDirectoryName(safePath)!, tenantId);
 
         return Ok(new { message = "Archivo subido e indexado correctamente." });
     }
@@ -69,10 +72,12 @@ public class MusicController : ControllerBase
     [HttpPost("download")]
     public async Task<IActionResult> DownloadFromLink([FromBody] DownloadUrlRequest request)
     {
+        var tenantId = GetTenantId();
+
         try
         {
             string safeDirectory = _fileManager.GetSafePath(_rootMusicFolder, request.Artist, request.Album, "temp");
-            safeDirectory = Path.GetDirectoryName(safeDirectory)!; // Quitamos el "temp"
+            safeDirectory = Path.GetDirectoryName(safeDirectory)!;
 
             string finalPath = await _downloadService.DownloadFromYouTubeAsync(request.Url, Path.Combine(safeDirectory, "placeholder.mp4"));
 
@@ -81,12 +86,11 @@ public class MusicController : ControllerBase
                 tfile.Tag.Performers = new[] { request.Artist ?? "General" };
                 tfile.Tag.Album = request.Album ?? "Varios";
                 tfile.Tag.Genres = new[] { request.Genre ?? "General" };
-
                 tfile.Tag.Title = Path.GetFileNameWithoutExtension(finalPath).Replace("_", " ");
                 tfile.Save();
             }
 
-            await _scannerService.ScanFolderAsync(Path.GetDirectoryName(finalPath)!);
+            await _scannerService.ScanFolderAsync(Path.GetDirectoryName(finalPath)!, tenantId);
 
             return Ok(new { message = "Video descargado e indexado correctamente.", path = finalPath });
         }
@@ -99,13 +103,13 @@ public class MusicController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateMusic(string id, [FromBody] UpdateMusicRequest request)
     {
-        var song = await _songRepository.GetByIdAsync(id);
-        if (song == null) return NotFound("Canción no encontrada.");
+        var tenantId = GetTenantId();
 
-        // 1. Mover archivo físico a su nueva carpeta si cambió el Artista/Album
+        var song = await _songRepository.GetByIdAsync(id);
+        if (song == null || song.TenantId != tenantId) return NotFound("Canción no encontrada.");
+
         string newPath = _fileManager.MoveFile(song.LocalPath, _rootMusicFolder, request.Artist, request.Album, song.FileName);
 
-        // 2. Actualizar etiquetas ID3 (Metadata física)
         using (var tfile = TagLib.File.Create(newPath))
         {
             tfile.Tag.Title = request.Title;
@@ -115,7 +119,6 @@ public class MusicController : ControllerBase
             tfile.Save();
         }
 
-        // 3. Actualizar la base de datos
         song.Title = request.Title;
         song.Artist = request.Artist;
         song.Album = request.Album;
@@ -130,13 +133,12 @@ public class MusicController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteMusic(string id)
     {
+        var tenantId = GetTenantId();
+
         var song = await _songRepository.GetByIdAsync(id);
-        if (song == null) return NotFound();
+        if (song == null || song.TenantId != tenantId) return NotFound();
 
-        // Borrar físico
         _fileManager.DeleteFile(song.LocalPath);
-
-        // Borrar de DB
         await _songRepository.DeleteAsync(id);
 
         return Ok(new { message = "Canción eliminada." });
@@ -145,8 +147,73 @@ public class MusicController : ControllerBase
     [HttpPost("scan")]
     public async Task<IActionResult> StartScan()
     {
-        // Escanea directamente la carpeta raíz que ya definimos arriba
-        await _scannerService.ScanFolderAsync(_rootMusicFolder);
+        var tenantId = GetTenantId();
+        await _scannerService.ScanFolderAsync(_rootMusicFolder, tenantId);
+
         return Ok(new { message = "Escaneo completado y base de datos actualizada." });
+    }
+
+    [HttpGet("genres")]
+    public async Task<IActionResult> GetGenres()
+    {
+        var tenantId = GetTenantId();
+        var allSongs = await _songRepository.GetAllAsync();
+
+        var genres = allSongs
+            .Where(s => s.TenantId == tenantId && !string.IsNullOrWhiteSpace(s.Genre))
+            .Select(s => s.Genre)
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
+
+        return Ok(genres);
+    }
+
+    [HttpGet("albums")]
+    public async Task<IActionResult> GetAlbums()
+    {
+        var tenantId = GetTenantId();
+        var allSongs = await _songRepository.GetAllAsync();
+
+        var albums = allSongs
+            .Where(s => s.TenantId == tenantId && !string.IsNullOrWhiteSpace(s.Album))
+            .Select(s => s.Album)
+            .Distinct()
+            .OrderBy(a => a)
+            .ToList();
+
+        return Ok(albums);
+    }
+
+    [HttpPost("preview-link")]
+    [AllowAnonymous]
+    public async Task<IActionResult> PreviewYouTubeLink([FromBody] DownloadUrlRequest request)
+    {
+        try
+        {
+            var youtube = new YoutubeExplode.YoutubeClient();
+            var video = await youtube.Videos.GetAsync(request.Url);
+
+            var titleParts = video.Title.Split('-');
+            string artist = video.Author.ChannelTitle.Replace(" - Topic", "").Trim();
+            string title = video.Title;
+
+            if (titleParts.Length > 1)
+            {
+                artist = titleParts[0].Trim();
+                title = titleParts[1].Trim();
+            }
+
+            return Ok(new
+            {
+                title = title,
+                artist = artist,
+                duration = video.Duration?.TotalSeconds ?? 0
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"No se pudo leer el video: {ex.Message}");
+        }
     }
 }

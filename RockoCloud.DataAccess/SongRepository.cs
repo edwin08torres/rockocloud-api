@@ -23,12 +23,15 @@ public class SongRepository : ISongRepository
     {
         using var db = _connectionFactory.CreateConnection();
         const string sql = @"
-            INSERT INTO Songs (Id, Title, Artist, Album, DurationSeconds, LocalPath, Genre, FileName, DateAdded)
-            VALUES (@Id, @Title, @Artist, @Album, @DurationSeconds, @LocalPath, @Genre, @FileName, @DateAdded)
-            ON CONFLICT(LocalPath) DO UPDATE SET
-                Title = excluded.Title,
-                Artist = excluded.Artist,
-                Album = excluded.Album;";
+        INSERT INTO Songs (Id, TenantId, Title, Artist, Album, DurationSeconds, LocalPath, Genre, FileName, DateAdded, CoverPath)
+        VALUES (@Id, @TenantId, @Title, @Artist, @Album, @DurationSeconds, @LocalPath, @Genre, @FileName, @DateAdded, @CoverPath)
+        ON CONFLICT(LocalPath) DO UPDATE SET
+            TenantId = excluded.TenantId,
+            Title = excluded.Title,
+            Artist = excluded.Artist,
+            Album = excluded.Album,
+            Genre = excluded.Genre,
+            CoverPath = excluded.CoverPath;";
 
         return await db.ExecuteAsync(sql, song);
     }

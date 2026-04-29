@@ -25,10 +25,27 @@ public class DevicesController : ControllerBase
         var tenantId = Guid.Parse(User.FindFirstValue("TenantId")!);
         var role = User.FindFirstValue("Role");
 
-        var devices = (role == "SuperAdmin")
-            ? await _context.Devices.Include(d => d.Branch).ThenInclude(b => b.Tenant).ToListAsync()
-            : await _context.Devices.Include(d => d.Branch)
-                .Where(d => d.Branch.TenantId == tenantId).ToListAsync();
+        var query = _context.Devices.AsQueryable();
+
+        if (role != "SuperAdmin")
+        {
+            query = query.Where(d => d.Branch.TenantId == tenantId);
+        }
+
+        var devices = await query
+            .Select(d => new
+            {
+                id = d.Id,
+                name = d.Name,
+                isActive = d.IsActive,
+                pairingPin = d.PairingPin,
+                branch = new
+                {
+                    name = d.Branch.Name,
+                    tenant = new { name = d.Branch.Tenant.Name }
+                }
+            })
+            .ToListAsync();
 
         return Ok(devices);
     }
