@@ -1,0 +1,6 @@
+@RockoCloud.Api_HostAddress = http://localhost:5097
+
+GET {{RockoCloud.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

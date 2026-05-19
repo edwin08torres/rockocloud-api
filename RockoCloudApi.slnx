@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="RockoCloud.Api/RockoCloud.Api.csproj" Id="83f0e4ea-47cc-4d76-bda4-7e5d45f9d7e1" />
+  <Project Path="RockoCloud.BusinessLogic.Interfaces/RockoCloud.BusinessLogic.Interfaces.csproj" />
+  <Project Path="RockoCloud.BusinessLogic/RockoCloud.BusinessLogic.csproj" />
+  <Project Path="RockoCloud.DataAccess.Interfaces/RockoCloud.DataAccess.Interfaces.csproj" />
+  <Project Path="RockoCloud.DataAccess/RockoCloud.DataAccess.csproj" />
+  <Project Path="RockoCloud.Models/RockoCloud.Models.csproj" />
+</Solution>
