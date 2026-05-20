@@ -7,11 +7,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RockoCloud.BusinessLogic\RockoCloud.BusinessLogic.csproj" />
+    <ProjectReference Include="..\RockoCloud.DataAccess.Interfaces\RockoCloud.DataAccess.Interfaces.csproj" />
+    <ProjectReference Include="..\RockoCloud.DataAccess\RockoCloud.DataAccess.csproj" />
     <ProjectReference Include="..\RockoCloud.Models\RockoCloud.Models.csproj" />
   </ItemGroup>
 

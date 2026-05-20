@@ -1,8 +1,8 @@
 <Solution>
   <Project Path="RockoCloud.Api/RockoCloud.Api.csproj" Id="83f0e4ea-47cc-4d76-bda4-7e5d45f9d7e1" />
-  <Project Path="RockoCloud.BusinessLogic.Interfaces/RockoCloud.BusinessLogic.Interfaces.csproj" />
-  <Project Path="RockoCloud.BusinessLogic/RockoCloud.BusinessLogic.csproj" />
-  <Project Path="RockoCloud.DataAccess.Interfaces/RockoCloud.DataAccess.Interfaces.csproj" />
-  <Project Path="RockoCloud.DataAccess/RockoCloud.DataAccess.csproj" />
+  <Project Path="RockoCloud.BusinessLogic.Interfaces/RockoCloud.BusinessLogic.Interfaces.csproj" Id="4e491df2-8e6a-4992-b140-06dee67d34f8" />
+  <Project Path="RockoCloud.BusinessLogic/RockoCloud.BusinessLogic.csproj" Id="ea8d6535-9bd0-428c-b040-d38201d3b3fe" />
+  <Project Path="RockoCloud.DataAccess.Interfaces/RockoCloud.DataAccess.Interfaces.csproj" Id="6fb8f6b4-6a6b-45ff-898d-f53f5ecc800c" />
+  <Project Path="RockoCloud.DataAccess/RockoCloud.DataAccess.csproj" Id="dc35dc94-a5ea-4f3c-b954-ae51c37916f5" />
   <Project Path="RockoCloud.Models/RockoCloud.Models.csproj" />
 </Solution>

@@ -15,6 +15,6 @@ namespace RockoCloud.Models.DTO
         public DateTime SubscriptionEndDate { get; set; }
         public string Status { get; set; } = "Active";
         public ICollection<Branch> Branches { get; set; } = new List<Branch>();
-        public ICollection<User> Users { get; set; } = new List<User>();
+        //public ICollection<User> Users { get; set; } = new List<User>();
     }
 }
