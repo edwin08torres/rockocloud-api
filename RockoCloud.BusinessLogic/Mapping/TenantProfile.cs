@@ -10,6 +10,7 @@ namespace RockoCloud.BusinessLogic.Mapping
         public TenantProfile() 
         {
             CreateMap<Models.Entities.Tenant, Models.DTO.TenantDTO>();
+            CreateMap<Models.DTO.TenantSaveDTO, Models.Entities.Tenant>();
         }
     }
 }
